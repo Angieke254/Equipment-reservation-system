@@ -11,6 +11,9 @@ A simple Django web app for organizations that share equipment — cameras, proj
 - **Race-condition guard** — re-checks free units at approval time
 - **Borrowing history** per user and per equipment
 - **Borrowers can cancel** their own pending or approved requests
+- **Monthly calendar view** of all active reservations, filterable by equipment
+- **REST API** at `/api/` for programmatic access (session or basic auth, browsable in dev)
+- **Overdue report** via `manage.py mark_overdue` — lists reservations checked out past their end date (does not auto-flip status; status is computed from `is_overdue`)
 
 ## Stack
 
@@ -74,14 +77,18 @@ myproject/
 │   ├── models.py
 │   ├── views.py
 │   ├── forms.py
-│   └── services.py          availability + conflict helpers
+│   ├── services.py          availability + conflict helpers
+│   ├── api.py               DRF serializers + viewsets
+│   ├── api_urls.py          /api/ routes
+│   ├── tests_api.py         REST API tests
+│   └── management/commands/mark_overdue.py
 ├── templates/               one tree, grouped by app
 │   ├── base.html
 │   ├── home.html
 │   ├── registration/
 │   ├── accounts/
 │   ├── equipment/
-│   └── reservations/
+│   └── reservations/        includes calendar.html
 └── static/css/styles.css
 ```
 
@@ -108,17 +115,30 @@ myproject/
 | `/reservations/request/<id>/`   | logged-in      | submit a reservation request |
 | `/reservations/<id>/`           | owner or admin | single reservation view |
 | `/reservations/manage/`         | admin          | pending requests queue |
+| `/reservations/calendar/`       | admin          | monthly calendar of all reservations |
 | `/reservations/<id>/approve/`   | admin          | approve request (POST) |
 | `/reservations/<id>/reject/`    | admin          | reject request (POST) |
 | `/reservations/<id>/checkout/`  | admin          | mark checked out (POST) |
 | `/reservations/<id>/mark-returned/` | admin      | mark returned (POST) |
+| `/api/`                         | authenticated  | REST API root (browsable in dev) |
+| `/api/equipment/`               | authenticated  | list / filter equipment |
+| `/api/reservations/`            | owner or admin | list reservations (own / all) |
+| `/api/reservations/<id>/cancel/`| owner or admin | cancel a reservation (POST) |
 | `/admin/`                       | superuser      | Django admin (backup) |
+
+## Management commands
+
+| Command | What it does |
+|---------|--------------|
+| `python manage.py seed_data`      | create admin/user accounts and demo equipment |
+| `python manage.py mark_overdue`   | list reservations checked out past their end date (read-only) |
+| `python manage.py changepassword <user>` | change a user's password |
+
+Schedule `mark_overdue` from cron if you want a periodic report — it does not mutate state.
 
 ## Out of scope (deliberately not built)
 
-Email notifications · password reset · image upload · calendar grid view · overdue auto-detection · multi-organization · REST API · automated tests beyond `manage.py check` · reports/analytics · i18n · Docker · production deployment.
-
-These can all be added on top of this MVP without changing the data model.
+Email notifications · password reset · image upload by users · overdue auto-detection (status is computed on read, not auto-flipped) · multi-organization · automated tests beyond `reservations/tests_api.py` (other `tests.py` files are empty stubs) · reports/analytics · i18n · Docker · production deployment.
 
 ## License
 
