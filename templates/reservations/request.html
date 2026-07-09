@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Request — {{ equipment.name }}{% endblock %}
+
+{% block content %}
+<section class="card narrow">
+  <p class="muted"><a href="{% url 'equipment_detail' equipment.pk %}">&larr; Back to {{ equipment.name }}</a></p>
+  <h1>Request {{ equipment.name }}</h1>
+  <p class="muted">Total units available: {{ equipment.total_quantity }}.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <ul class="errors">
+        {% for err in form.non_field_errors %}<li>{{ err }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit request</button>
+    <a class="btn btn-link" href="{% url 'equipment_detail' equipment.pk %}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

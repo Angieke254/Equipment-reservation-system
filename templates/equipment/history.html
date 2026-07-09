@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}History — {{ equipment.name }}{% endblock %}
+
+{% block content %}
+<section>
+  <p class="muted"><a href="{% url 'equipment_detail' equipment.pk %}">&larr; Back to {{ equipment.name }}</a></p>
+  <h1>History — {{ equipment.name }}</h1>
+  {% if reservations %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th><th>User</th><th>Dates</th><th>Qty</th><th>Status</th><th>Decided</th><th>Returned</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td>{{ r.user.username }}</td>
+            <td>{{ r.start_date|date:"M j" }} – {{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r.quantity }}</td>
+            <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+            <td>{{ r.decided_at|date:"M j, Y" }}</td>
+            <td>{{ r.returned_at|date:"M j, Y"|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No reservations for this item yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

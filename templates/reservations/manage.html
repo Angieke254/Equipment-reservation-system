@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load equipment_extras %}
+{% block title %}Admin queue{% endblock %}
+
+{% block content %}
+<section>
+  <h1>Pending requests</h1>
+  <p class="muted">
+    Approve or reject each request from the request detail page. ·
+    <a href="{% url 'reservation_calendar' %}">View the calendar &rarr;</a>
+  </p>
+
+  {% if pending %}
+    <table class="data-table">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Equipment</th><th>Dates</th><th>Qty</th><th>Purpose</th><th>Submitted</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for r in pending %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td>{{ r.user.username }}</td>
+            <td><a href="{% url 'equipment_detail' r.equipment.pk %}">{{ r.equipment.name }}</a></td>
+            <td>{{ r.start_date|date:"M j" }} – {{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r.quantity }}</td>
+            <td class="truncate">{{ r.purpose|default:"—" }}</td>
+            <td>{{ r.created_at|date:"M j, H:i" }}</td>
+            <td><a class="btn btn-link" href="{% url 'reservation_detail' r.pk %}">review &rarr;</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>The queue is empty. Nothing to do right now. 🎉</p>
+  {% endif %}
+
+  {% if overdue %}
+    <h2>Overdue</h2>
+    <table class="data-table">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Equipment</th><th>End date</th><th>Days late</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for r in overdue %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td>{{ r.user.username }}</td>
+            <td><a href="{% url 'equipment_detail' r.equipment.pk %}">{{ r.equipment.name }}</a></td>
+            <td>{{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r|days_late }}</td>
+            <td><a class="btn btn-link" href="{% url 'reservation_detail' r.pk %}">view &rarr;</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>
+{% endblock %}

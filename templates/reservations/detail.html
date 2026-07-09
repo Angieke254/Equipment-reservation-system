@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Reservation #{{ reservation.pk }}{% endblock %}
+
+{% block content %}
+<section>
+  <p class="muted">
+    <a href="{% url 'my_reservations' %}">&larr; Back</a>
+    {% if user.is_admin %}
+      &middot; <a href="{% url 'manage_queue' %}">Admin queue</a>
+    {% endif %}
+  </p>
+
+  <h1>Reservation #{{ reservation.pk }}</h1>
+  <p>
+    <strong>{{ reservation.equipment.name }}</strong>
+    <span class="badge badge-{{ reservation.status }}">{{ reservation.get_status_display }}</span>
+    {% if reservation.is_overdue %}<span class="badge badge-overdue">OVERDUE</span>{% endif %}
+  </p>
+
+  <dl class="meta">
+    <dt>User</dt><dd>{{ reservation.user.username }} ({{ reservation.user.get_full_name|default:"" }})</dd>
+    <dt>Dates</dt><dd>{{ reservation.start_date|date:"M j, Y" }} – {{ reservation.end_date|date:"M j, Y" }}</dd>
+    <dt>Quantity</dt><dd>{{ reservation.quantity }}</dd>
+    <dt>Purpose</dt><dd>{{ reservation.purpose|linebreaksbr|default:"—" }}</dd>
+    <dt>Created</dt><dd>{{ reservation.created_at|date:"M j, Y H:i" }}</dd>
+    <dt>Decided</dt><dd>{% if reservation.decided_at %}{{ reservation.decided_at|date:"M j, Y H:i" }} by {{ reservation.decided_by.username }}{% else %}—{% endif %}</dd>
+    <dt>Checked out</dt><dd>{{ reservation.checked_out_at|date:"M j, Y H:i"|default:"—" }}</dd>
+    <dt>Returned</dt><dd>{{ reservation.returned_at|date:"M j, Y H:i"|default:"—" }}</dd>
+    {% if reservation.decision_notes %}
+      <dt>Admin notes</dt><dd>{{ reservation.decision_notes|linebreaksbr }}</dd>
+    {% endif %}
+  </dl>
+
+  <div class="action-row">
+    {% if user.is_admin and reservation.status == "pending" %}
+      <form method="post" action="{% url 'approve_reservation' reservation.pk %}" class="inline-form">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Approve</button>
+      </form>
+      <form method="post" action="{% url 'reject_reservation' reservation.pk %}" class="inline-form">
+        {% csrf_token %}
+        <input type="text" name="notes" placeholder="Optional reason for rejection">
+        <button class="btn btn-danger" type="submit">Reject</button>
+      </form>
+    {% endif %}
+    {% if user.is_admin and reservation.status == "approved" %}
+      <form method="post" action="{% url 'checkout_reservation' reservation.pk %}" class="inline-form">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Mark checked out</button>
+      </form>
+    {% endif %}
+    {% if user.is_admin and reservation.status == "checked_out" %}
+      <form method="post" action="{% url 'mark_returned' reservation.pk %}" class="inline-form">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Mark returned</button>
+      </form>
+    {% endif %}
+    {% if can_cancel %}
+      <form method="post" action="{% url 'cancel_reservation' reservation.pk %}" class="inline-form">
+        {% csrf_token %}
+        <button class="btn btn-danger" type="submit">Cancel reservation</button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

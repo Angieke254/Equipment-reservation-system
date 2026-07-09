@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load equipment_extras %}
+{% block title %}Equipment catalog{% endblock %}
+
+{% block content %}
+<section>
+  <h1>Equipment catalog</h1>
+
+  {# ----- Search bar ----- #}
+  <form method="get" class="filter-bar" role="search">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search by name or description…">
+    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+    <button class="btn" type="submit">Search</button>
+    {% if q or current_category %}<a class="btn btn-link" href="{% url 'equipment_list' %}">clear</a>{% endif %}
+  </form>
+
+  {# ----- Category chips (anchor links) ----- #}
+  {% if not q and not current_category %}
+    <nav class="chip-row" aria-label="Browse by category">
+      {% for cat in categories %}
+        <a class="chip" href="#cat-{{ cat.slug }}">
+          {{ cat.name }}
+          <span class="chip-count">{{ cat_counts|get_item:cat.id }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+  {% endif %}
+
+  {# ----- Filtered (flat) view ----- #}
+  {% if q or current_category %}
+    {% if sections and sections.0.1 %}
+      <div class="grid">
+        {% for item in sections.0.1 %}
+          <article class="card item-card">
+            {% if item.display_image_url %}
+              <a href="{% url 'equipment_detail' item.pk %}">
+                <img class="item-image" src="{{ item.display_image_url }}" alt="{{ item.name }}" loading="lazy">
+              </a>
+            {% endif %}
+            <h2 class="item-title"><a href="{% url 'equipment_detail' item.pk %}">{{ item.name }}</a></h2>
+            <p class="muted small">{{ item.category.name }} &middot; condition: {{ item.get_condition_display }}</p>
+            <p>
+              <span class="badge {% if item.available_now > 0 %}badge-ok{% else %}badge-bad{% endif %}">
+                {{ item.available_now }} of {{ item.total_quantity }} free
+              </span>
+            </p>
+            <p><a class="btn btn-link" href="{% url 'equipment_detail' item.pk %}">Details &rarr;</a></p>
+          </article>
+        {% endfor %}
+      </div>
+
+      {% if page_obj %}
+        <nav class="pagination">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">&laquo; Previous</a>
+          {% endif %}
+          <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">Next &raquo;</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    {% else %}
+      <p>No equipment matches those filters.</p>
+    {% endif %}
+
+  {# ----- Grouped view: one section per category ----- #}
+  {% else %}
+    {% for cat, items in sections %}
+      <section class="cat-section" id="cat-{{ cat.slug }}">
+        <header class="cat-section-header">
+          <h2>{{ cat.name }}</h2>
+          <p class="muted small">{{ cat.description }}</p>
+          <a class="btn btn-link" href="?category={{ cat.slug }}">See only {{ cat.name }} &rarr;</a>
+        </header>
+        <div class="grid">
+          {% for item in items %}
+            <article class="card item-card">
+              {% if item.display_image_url %}
+                <a href="{% url 'equipment_detail' item.pk %}">
+                  <img class="item-image" src="{{ item.display_image_url }}" alt="{{ item.name }}" loading="lazy">
+                </a>
+              {% endif %}
+              <h3 class="item-title"><a href="{% url 'equipment_detail' item.pk %}">{{ item.name }}</a></h3>
+              <p class="muted small">condition: {{ item.get_condition_display }}</p>
+              <p>
+                <span class="badge {% if item.available_now > 0 %}badge-ok{% else %}badge-bad{% endif %}">
+                  {{ item.available_now }} of {{ item.total_quantity }} free
+                </span>
+              </p>
+              <p><a class="btn btn-link" href="{% url 'equipment_detail' item.pk %}">Details &rarr;</a></p>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% empty %}
+      <p>No equipment in the catalog yet.</p>
+    {% endfor %}
+  {% endif %}
+</section>
+
+{# Floating back-to-top button (only on the unfiltered view) #}
+{% if not q and not current_category %}
+  <a href="#top" class="back-to-top" aria-label="Back to top">&uarr;</a>
+{% endif %}
+{% endblock %}

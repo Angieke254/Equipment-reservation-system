@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Borrowing history{% endblock %}
+
+{% block content %}
+<section>
+  <h1>Borrowing history</h1>
+  <p class="muted">Every reservation you have ever made, newest first.</p>
+
+  {% if status_filter %}
+    <p>Filtered by status: <strong>{{ status_filter }}</strong> &middot; <a href="{% url 'my_history' %}">clear filter</a></p>
+  {% endif %}
+
+  {% if reservations %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Equipment</th><th>Dates</th><th>Qty</th><th>Status</th><th>Created</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reservations %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td><a href="{% url 'equipment_detail' r.equipment.pk %}">{{ r.equipment.name }}</a></td>
+            <td>{{ r.start_date|date:"M j" }} – {{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r.quantity }}</td>
+            <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+            <td>{{ r.created_at|date:"M j, Y" }}</td>
+            <td><a href="{% url 'reservation_detail' r.pk %}">view</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>You haven't borrowed anything yet. <a href="{% url 'equipment_list' %}">Browse the catalog</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

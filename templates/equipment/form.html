@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<section class="card narrow">
+  <h1>{{ title }}</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+    <a class="btn btn-link" href="{% if equipment %}{% url 'equipment_detail' equipment.pk %}{% else %}{% url 'equipment_list' %}{% endif %}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

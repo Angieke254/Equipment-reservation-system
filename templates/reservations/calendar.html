@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load equipment_extras %}
+{% block title %}Reservation calendar{% endblock %}
+
+{% block content %}
+<section>
+  <h1>Reservation calendar</h1>
+  <p class="muted">
+    Month view of every active or pending reservation. Use the filter to scope
+    to a single piece of equipment. <a href="{% url 'manage_queue' %}">Back to the admin queue</a>.
+  </p>
+
+  <form method="get" class="filter-bar">
+    <label>
+      Equipment
+      <select name="equipment" onchange="this.form.submit()">
+        <option value="">— all —</option>
+        {% for e in all_equipment %}
+          <option value="{{ e.pk }}" {% if equipment_filter and equipment_filter.pk == e.pk %}selected{% endif %}>
+            {{ e.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <noscript><button type="submit" class="btn">Apply</button></noscript>
+  </form>
+
+  <div class="calendar-nav">
+    <a class="btn" href="?month={{ prev_month }}{% if equipment_filter %}&amp;equipment={{ equipment_filter.pk }}{% endif %}">&larr; {{ prev_month }}</a>
+    <strong>{{ month_label }}</strong>
+    <a class="btn" href="?month={{ next_month }}{% if equipment_filter %}&amp;equipment={{ equipment_filter.pk }}{% endif %}">{{ next_month }} &rarr;</a>
+  </div>
+
+  <table class="calendar">
+    <thead>
+      <tr>
+        <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for week in weeks %}
+        <tr>
+          {% for day in week %}
+            <td class="cal-cell{% if day and day.month != today.month %} cal-other{% endif %}{% if day == today %} cal-today{% endif %}">
+              {% if day %}
+                <div class="cal-date">{{ day.day }}</div>
+                <ul class="cal-events">
+                  {% for r in by_day|get_item:day %}
+                    <li>
+                      <a href="{% url 'reservation_detail' r.pk %}"
+                         class="cal-event cal-event-{{ r.status }}"
+                         title="{{ r.user.username }} • {{ r.equipment.name }} ({{ r.start_date }} – {{ r.end_date }})">
+                        <strong>{{ r.equipment.name }}</strong><br>
+                        <span class="muted">{{ r.user.username }} · ×{{ r.quantity }}</span>
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="muted">
+    <span class="cal-event cal-event-pending">pending</span>
+    <span class="cal-event cal-event-approved">approved</span>
+    <span class="cal-event cal-event-checked_out">checked out</span>
+  </p>
+</section>
+{% endblock %}

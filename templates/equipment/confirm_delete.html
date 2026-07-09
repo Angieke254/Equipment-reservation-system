@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ equipment.name }}{% endblock %}
+
+{% block content %}
+<section class="card narrow">
+  <h1>Delete {{ equipment.name }}?</h1>
+  <p>This will also remove all reservation history referencing this item. This cannot be undone.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, delete</button>
+    <a class="btn btn-link" href="{% url 'equipment_detail' equipment.pk %}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

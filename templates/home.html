@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Equipreserve — Equipment Reservation{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Get Ready to Organize, Track and Reserve Everything with <span class="brand-accent">Equipreserve</span></h1>
+  <p>
+    Borrow cameras, projectors, lab devices, and laptops from a single
+    catalog. See live availability, request what you need, and let the
+    equipment team approve the loan in one click.
+  </p>
+  <div class="hero-stats">
+    <div><strong>{{ total_equipment }}</strong><span>items in catalog</span></div>
+    <div><strong>{{ total_units }}</strong><span>units available</span></div>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{% url 'equipment_list' %}">Browse equipment</a>
+    {% if not user.is_authenticated %}
+      <a class="btn" href="{% url 'register' %}">Create an account</a>
+      <a class="btn btn-link" href="{% url 'login' %}">Log in</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

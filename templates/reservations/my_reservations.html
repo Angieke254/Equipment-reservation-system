@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}My reservations{% endblock %}
+
+{% block content %}
+<section>
+  <h1>My reservations</h1>
+
+  <h2>Pending</h2>
+  {% if pending %}
+    <table class="data-table">
+      <thead><tr><th>ID</th><th>Equipment</th><th>Dates</th><th>Qty</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for r in pending %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td><a href="{% url 'equipment_detail' r.equipment.pk %}">{{ r.equipment.name }}</a></td>
+            <td>{{ r.start_date|date:"M j" }} – {{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r.quantity }}</td>
+            <td>
+              <span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span>
+              {% if r.is_overdue %}<span class="badge badge-overdue">OVERDUE</span>{% endif %}
+            </td>
+            <td><a href="{% url 'reservation_detail' r.pk %}">view</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No pending requests.</p>
+  {% endif %}
+
+  <h2>Active</h2>
+  {% if active %}
+    <table class="data-table">
+      <thead><tr><th>ID</th><th>Equipment</th><th>Dates</th><th>Qty</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for r in active %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td><a href="{% url 'equipment_detail' r.equipment.pk %}">{{ r.equipment.name }}</a></td>
+            <td>{{ r.start_date|date:"M j" }} – {{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r.quantity }}</td>
+            <td>
+              <span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span>
+              {% if r.is_overdue %}<span class="badge badge-overdue">OVERDUE</span>{% endif %}
+            </td>
+            <td><a href="{% url 'reservation_detail' r.pk %}">view</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No active loans.</p>
+  {% endif %}
+
+  <h2>Past</h2>
+  {% if past %}
+    <table class="data-table">
+      <thead><tr><th>ID</th><th>Equipment</th><th>Dates</th><th>Qty</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for r in past %}
+          <tr>
+            <td>#{{ r.pk }}</td>
+            <td><a href="{% url 'equipment_detail' r.equipment.pk %}">{{ r.equipment.name }}</a></td>
+            <td>{{ r.start_date|date:"M j" }} – {{ r.end_date|date:"M j, Y" }}</td>
+            <td>{{ r.quantity }}</td>
+            <td>
+              <span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span>
+              {% if r.is_overdue %}<span class="badge badge-overdue">OVERDUE</span>{% endif %}
+            </td>
+            <td><a href="{% url 'reservation_detail' r.pk %}">view</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No past reservations.</p>
+  {% endif %}
+</section>
+{% endblock %}
