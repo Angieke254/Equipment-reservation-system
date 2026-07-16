@@ -33,6 +33,23 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
 
 
+# Production security hardening. Only applied when DEBUG is off so the
+# dev server still works over plain HTTP. In dev, several of these would
+# break (e.g. cookies over HTTPS only) or are no-ops.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    # 1 year HSTS — only safe when the whole site is HTTPS and you control
+    # the certificate lifecycle. Bump up only after that's confirmed.
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = 'same-origin'
+    X_FRAME_OPTIONS = 'DENY'
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -159,12 +176,25 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email — console backend for development. Messages are printed to stdout,
-# which makes the workflow easy to follow locally and trivial to test
-# (django.core.mail.outbox captures them).
-# Swap to 'django.core.mail.backends.smtp.EmailBackend' for production.
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@equipment-reservation.local'
+# Email — defaults to the console backend for development. In production, set
+# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend and the SMTP_HOST_*
+# variables in .env. The console backend makes the workflow easy to follow
+# locally and trivial to test (django.core.mail.outbox captures them).
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend',
+)
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default='noreply@equipment-reservation.local',
+)
+# SMTP — only read when the SMTP backend is selected; the console backend
+# ignores them. Set these in .env for production.
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 
 # Per-user borrowing limit. Counts pending + approved + checked_out
 # reservations (everything except rejected/cancelled/returned). Bump this
