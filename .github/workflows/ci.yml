@@ -38,7 +38,12 @@ jobs:
         env:
           # CI runs with a known dummy secret. The application reads
           # SECRET_KEY / DEBUG from the environment (see config/settings.py).
+          # DEBUG is left True (the default) for tests: the production
+          # security hardening in config/settings.py activates
+          # SECURE_SSL_REDIRECT when DEBUG is off, which makes the
+          # Django test client (which speaks plain HTTP) 301-redirect
+          # to https and lose POST bodies. Tests should never run under
+          # production-mode security middleware.
           SECRET_KEY: ci-only-not-a-real-secret
-          DEBUG: "False"
           ALLOWED_HOSTS: "*"
         run: python manage.py test
