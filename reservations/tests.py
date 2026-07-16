@@ -38,8 +38,11 @@ def _post(client, url, **extra):
 class EmailNotificationTests(TestCase):
     """Each admin workflow action should email the borrower once."""
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin, cls.borrower, cls.no_email, cls.equipment = _make_world()
+
     def setUp(self):
-        self.admin, self.borrower, self.no_email, self.equipment = _make_world()
         self.client = Client()
         self.client.force_login(self.admin)
         self.reservation = Reservation.objects.create(
@@ -109,8 +112,11 @@ class EmailNotificationTests(TestCase):
 class NotifyHelperTests(TestCase):
     """The notify_status_change() helper itself, exercised directly."""
 
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin, cls.borrower, cls.no_email, cls.equipment = _make_world()
+
     def setUp(self):
-        self.admin, self.borrower, self.no_email, self.equipment = _make_world()
         self.reservation = Reservation.objects.create(
             user=self.borrower,
             equipment=self.equipment,
@@ -130,9 +136,10 @@ class NotifyHelperTests(TestCase):
 class OverdueTests(TestCase):
     """`is_overdue` and the mark_overdue management command."""
 
-    def setUp(self):
-        self.admin, self.borrower, self.no_email, self.equipment = _make_world()
-        self.today = date.today()
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin, cls.borrower, cls.no_email, cls.equipment = _make_world()
+        cls.today = date.today()
 
     def _make(self, status, end_date):
         return Reservation.objects.create(
@@ -190,21 +197,24 @@ class OverdueTests(TestCase):
 class CalendarViewTests(TestCase):
     """The /reservations/calendar/ view (admin only)."""
 
-    def setUp(self):
-        self.admin, self.borrower, _, self.equipment = _make_world()
-        self.other_equipment = Equipment.objects.create(
-            name="Other", category=self.equipment.category, total_quantity=1
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin, cls.borrower, _, cls.equipment = _make_world()
+        cls.other_equipment = Equipment.objects.create(
+            name="Other", category=cls.equipment.category, total_quantity=1
         )
-        self.client = Client()
-        self.today = date.today()
-        self.reservation = Reservation.objects.create(
-            user=self.borrower,
-            equipment=self.equipment,
+        cls.today = date.today()
+        cls.reservation = Reservation.objects.create(
+            user=cls.borrower,
+            equipment=cls.equipment,
             quantity=1,
-            start_date=self.today,
-            end_date=self.today + timedelta(days=2),
+            start_date=cls.today,
+            end_date=cls.today + timedelta(days=2),
             status="approved",
         )
+
+    def setUp(self):
+        self.client = Client()
 
     def test_calendar_requires_admin(self):
         self.client.force_login(self.borrower)
@@ -267,17 +277,21 @@ class CalendarViewTests(TestCase):
 class BorrowingLimitTests(TestCase):
     """Per-user MAX_ACTIVE_LOANS cap."""
 
-    def setUp(self):
-        self.admin, self.borrower, _, self.equipment = _make_world()
-        self.client = Client()
-        self.client.force_login(self.borrower)
-        self.url = reverse("request_reservation", args=[self.equipment.pk])
-        self.post_data = {
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin, cls.borrower, _, cls.equipment = _make_world()
+        cls.post_data = {
             "start_date": (date.today() + timedelta(days=1)).isoformat(),
             "end_date": (date.today() + timedelta(days=3)).isoformat(),
             "quantity": 1,
             "purpose": "Test",
         }
+        cls.url = None  # set in setUp once equipment.pk is known
+
+    def setUp(self):
+        self.client = Client()
+        self.client.force_login(self.borrower)
+        self.url = reverse("request_reservation", args=[self.equipment.pk])
 
     def _post(self):
         return self.client.post(self.url, self.post_data)

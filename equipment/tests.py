@@ -27,8 +27,11 @@ def _make_world():
 
 
 class ImageUploadTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin, cls.cat = _make_world()
+
     def setUp(self):
-        self.admin, self.cat = _make_world()
         self.client = Client()
         self.client.force_login(self.admin)
 
