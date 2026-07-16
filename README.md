@@ -142,4 +142,13 @@ Email notifications · password reset · image upload by users · overdue auto-d
 
 ## License
 
-MIT (or whatever your organization prefers — adjust as needed).
+MIT — see [LICENSE](LICENSE).
+
+## Branch protection
+
+After importing this repo, enable branch protection on `main`:
+**Settings → Branches → Add rule → Branch name pattern `main`** →
+require a pull request before merging, require status checks to pass
+(the `CI / test` workflow from `.github/workflows/ci.yml` will appear
+once it has run at least once). This keeps `main` green and ensures
+every change is reviewed and tested before it lands.
