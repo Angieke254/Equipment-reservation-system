@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
-from django.db.models import Q
+from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
@@ -26,13 +26,13 @@ class AppLogoutView(LogoutView):
 
 def home(request):
     """Landing page. Anonymous users see CTAs; logged-in users see the catalog."""
-    total_equipment = Equipment.objects.filter(is_active=True).count()
-    total_units = sum(
-        e.total_quantity for e in Equipment.objects.filter(is_active=True)
+    counts = Equipment.objects.filter(is_active=True).aggregate(
+        total_equipment=Count("id"),
+        total_units=Sum("total_quantity"),
     )
     context = {
-        "total_equipment": total_equipment,
-        "total_units": total_units,
+        "total_equipment": counts["total_equipment"] or 0,
+        "total_units": counts["total_units"] or 0,
     }
     return render(request, "home.html", context)
 

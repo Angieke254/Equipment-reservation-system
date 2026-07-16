@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -50,10 +50,15 @@ def equipment_list(request):
         ]
         page_obj = None
 
-    # Count per category for the chip badges
+    # Count per category for the chip badges (one grouped query).
+    cat_counts_raw = (
+        Equipment.objects.filter(is_active=True)
+        .values("category_id")
+        .annotate(n=Count("id"))
+    )
     cat_counts = {c.id: 0 for c in categories}
-    for item in Equipment.objects.filter(is_active=True).only("category_id"):
-        cat_counts[item.category_id] = cat_counts.get(item.category_id, 0) + 1
+    for row in cat_counts_raw:
+        cat_counts[row["category_id"]] = row["n"]
 
     return render(
         request,
